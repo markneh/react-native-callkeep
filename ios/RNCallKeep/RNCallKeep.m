@@ -38,6 +38,9 @@ NSString *const RNCallKeepCheckReachability = @"RNCallKeepCheckReachability";
 NSString *const RNCallKeepDidChangeAudioRoute = @"RNCallKeepDidChangeAudioRoute";
 NSString *const RNCallKeepDidLoadWithEvents = @"RNCallKeepDidLoadWithEvents";
 
+@interface RNCallKeep ()
+@property (nonatomic, strong) CXProviderEventCallback providerEventCallback;
+@end
 
 @implementation RNCallKeep
 {
@@ -47,6 +50,8 @@ NSString *const RNCallKeepDidLoadWithEvents = @"RNCallKeepDidLoadWithEvents";
     bool _isReachable;
     NSMutableArray *_delayedEvents;
 }
+
+@synthesize providerEventCallback;
 
 static bool isSetupNatively;
 static CXProvider* sharedProvider;
@@ -164,6 +169,10 @@ RCT_EXPORT_MODULE()
 - (void)sendEventWithNameWrapper:(NSString *)name body:(id)body {
     NSLog(@"[RNCallKeep] sendEventWithNameWrapper: %@, hasListeners : %@", name, _hasListeners ? @"YES": @"NO");
 
+    if (self.providerEventCallback) {
+        self.providerEventCallback(name, body);
+    }
+
     if (_hasListeners) {
         [self sendEventWithName:name body:body];
     } else {
@@ -203,9 +212,15 @@ RCT_EXPORT_MODULE()
 }
 
 + (void)setup:(NSDictionary *)options {
+    [self setup:options eventCallback:nil];
+}
+
++ (void)setup:(NSDictionary *)options eventCallback:(CXProviderEventCallback)callback {
     RNCallKeep *callKeep = [RNCallKeep allocWithZone: nil];
     [callKeep setup:options];
     isSetupNatively = YES;
+
+    callKeep.providerEventCallback = callback;
 }
 
 RCT_EXPORT_METHOD(setup:(NSDictionary *)options)

@@ -29,6 +29,8 @@ extern NSString *const RNCallKeepCheckReachability;
 extern NSString *const RNCallKeepDidChangeAudioRoute;
 extern NSString *const RNCallKeepDidLoadWithEvents;
 
+typedef void (^CXProviderEventCallback)(NSString *name, id data);
+
 @interface RNCallKeep : RCTEventEmitter <CXProviderDelegate>
 
 @property (nonatomic, strong) CXCallController *callKeepCallController;
@@ -61,6 +63,8 @@ continueUserActivity:(NSUserActivity *)userActivity
 + (BOOL)isCallActive:(NSString *)uuidString;
 
 + (void)setup:(NSDictionary *)options;
++ (void)setup:(NSDictionary *)options eventCallback:(CXProviderEventCallback)callback;
+
 + (NSMutableArray *) getCalls;
 
 @end
