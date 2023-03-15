@@ -23,20 +23,21 @@ static int const OUTGOING_CALL_WAKEUP_DELAY = 10;
 static int const OUTGOING_CALL_WAKEUP_DELAY = 5;
 #endif
 
-static NSString *const RNCallKeepHandleStartCallNotification = @"RNCallKeepHandleStartCallNotification";
-static NSString *const RNCallKeepDidReceiveStartCallAction = @"RNCallKeepDidReceiveStartCallAction";
-static NSString *const RNCallKeepPerformAnswerCallAction = @"RNCallKeepPerformAnswerCallAction";
-static NSString *const RNCallKeepPerformEndCallAction = @"RNCallKeepPerformEndCallAction";
-static NSString *const RNCallKeepDidActivateAudioSession = @"RNCallKeepDidActivateAudioSession";
-static NSString *const RNCallKeepDidDeactivateAudioSession = @"RNCallKeepDidDeactivateAudioSession";
-static NSString *const RNCallKeepDidDisplayIncomingCall = @"RNCallKeepDidDisplayIncomingCall";
-static NSString *const RNCallKeepDidPerformSetMutedCallAction = @"RNCallKeepDidPerformSetMutedCallAction";
-static NSString *const RNCallKeepPerformPlayDTMFCallAction = @"RNCallKeepDidPerformDTMFAction";
-static NSString *const RNCallKeepDidToggleHoldAction = @"RNCallKeepDidToggleHoldAction";
-static NSString *const RNCallKeepProviderReset = @"RNCallKeepProviderReset";
-static NSString *const RNCallKeepCheckReachability = @"RNCallKeepCheckReachability";
-static NSString *const RNCallKeepDidChangeAudioRoute = @"RNCallKeepDidChangeAudioRoute";
-static NSString *const RNCallKeepDidLoadWithEvents = @"RNCallKeepDidLoadWithEvents";
+NSString *const RNCallKeepHandleStartCallNotification = @"RNCallKeepHandleStartCallNotification";
+NSString *const RNCallKeepDidReceiveStartCallAction = @"RNCallKeepDidReceiveStartCallAction";
+NSString *const RNCallKeepPerformAnswerCallAction = @"RNCallKeepPerformAnswerCallAction";
+NSString *const RNCallKeepPerformEndCallAction = @"RNCallKeepPerformEndCallAction";
+NSString *const RNCallKeepDidActivateAudioSession = @"RNCallKeepDidActivateAudioSession";
+NSString *const RNCallKeepDidDeactivateAudioSession = @"RNCallKeepDidDeactivateAudioSession";
+NSString *const RNCallKeepDidDisplayIncomingCall = @"RNCallKeepDidDisplayIncomingCall";
+NSString *const RNCallKeepDidPerformSetMutedCallAction = @"RNCallKeepDidPerformSetMutedCallAction";
+NSString *const RNCallKeepPerformPlayDTMFCallAction = @"RNCallKeepDidPerformDTMFAction";
+NSString *const RNCallKeepDidToggleHoldAction = @"RNCallKeepDidToggleHoldAction";
+NSString *const RNCallKeepProviderReset = @"RNCallKeepProviderReset";
+NSString *const RNCallKeepCheckReachability = @"RNCallKeepCheckReachability";
+NSString *const RNCallKeepDidChangeAudioRoute = @"RNCallKeepDidChangeAudioRoute";
+NSString *const RNCallKeepDidLoadWithEvents = @"RNCallKeepDidLoadWithEvents";
+
 
 @implementation RNCallKeep
 {

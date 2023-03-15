@@ -14,6 +14,21 @@
 
 #import <React/RCTEventEmitter.h>
 
+extern NSString *const RNCallKeepHandleStartCallNotification;
+extern NSString *const RNCallKeepDidReceiveStartCallAction;
+extern NSString *const RNCallKeepPerformAnswerCallAction;
+extern NSString *const RNCallKeepPerformEndCallAction;
+extern NSString *const RNCallKeepDidActivateAudioSession;
+extern NSString *const RNCallKeepDidDeactivateAudioSession;
+extern NSString *const RNCallKeepDidDisplayIncomingCall;
+extern NSString *const RNCallKeepDidPerformSetMutedCallAction;
+extern NSString *const RNCallKeepPerformPlayDTMFCallAction;
+extern NSString *const RNCallKeepDidToggleHoldAction;
+extern NSString *const RNCallKeepProviderReset;
+extern NSString *const RNCallKeepCheckReachability;
+extern NSString *const RNCallKeepDidChangeAudioRoute;
+extern NSString *const RNCallKeepDidLoadWithEvents;
+
 @interface RNCallKeep : RCTEventEmitter <CXProviderDelegate>
 
 @property (nonatomic, strong) CXCallController *callKeepCallController;
