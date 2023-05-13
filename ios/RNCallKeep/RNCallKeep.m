@@ -1070,7 +1070,11 @@ continueUserActivity:(NSUserActivity *)userActivity
     NSLog(@"[RNCallKeep][CXProviderDelegate][provider:performStartCallAction]");
 #endif
     //do this first, audio sessions are flakey
-    [self configureAudioSession];
+    // upd. as of 16.4.1 (a)
+    // not exactly sure why but this call creates an issue where CallKit UI disappears after few seconds
+    // my current explanation is that provider:didActivateAudioSession: method calls this method as well
+    // which leads to reconfiguring audio session
+    //[self configureAudioSession];
     //tell the JS to actually make the call
     [self sendEventWithNameWrapper:RNCallKeepDidReceiveStartCallAction body:@{ @"callUUID": [action.callUUID.UUIDString lowercaseString], @"handle": action.handle.value }];
     [action fulfill];
