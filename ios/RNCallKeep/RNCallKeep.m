@@ -55,6 +55,7 @@ NSString *const RNCallKeepDidLoadWithEvents = @"RNCallKeepDidLoadWithEvents";
 
 static bool isSetupNatively;
 static CXProvider* sharedProvider;
+static NSMutableDictionary *answerActions;
 
 // should initialise in AppDelegate.m
 RCT_EXPORT_MODULE()
@@ -87,6 +88,7 @@ RCT_EXPORT_MODULE()
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
         sharedInstance = [super allocWithZone:zone];
+        answerActions = [[NSMutableDictionary alloc] init];
     });
     return sharedInstance;
 }
@@ -183,6 +185,44 @@ RCT_EXPORT_MODULE()
         ];
         [_delayedEvents addObject:dictionary];
     }
+}
+
+- (void)addCallUUIDToSaveAnswerActionLater:(NSString *)uuidString {
+    NSString *uuid = [uuidString lowercaseString];
+    [answerActions setObject:uuid forKey:uuid];
+#ifdef DEBUG
+    NSLog(@"[RNCallKeep][addCallUUIDToAutomaticallyFulfillAnswerAction:] setting uuid: %@", uuid);
+    NSLog(@"[RNCallKeep][addCallUUIDToAutomaticallyFulfillAnswerAction:] current _answerActions is: %@", answerActions);
+#endif
+}
+
+- (void)removeObjectsAssociatedWithUUID:(NSString *)uuidString {
+    NSString *uuid = [uuidString lowercaseString];
+    [answerActions removeObjectForKey:uuid];
+#ifdef DEBUG
+    NSLog(@"[RNCallKeep][removeCallUUIDToAutomaticallyFulfillAnswerAction:] removing uuid: %@", uuid);
+    NSLog(@"[RNCallKeep][removeCallUUIDToAutomaticallyFulfillAnswerAction:] current _answerActions is: %@", answerActions);
+#endif
+}
+
+- (CXAnswerCallAction *)answerActionForCallUUID:(NSString *)uuidString {
+    NSString *uuid = [uuidString lowercaseString];
+#ifdef DEBUG
+    NSLog(@"[RNCallKeep][answerActionForCallUUID:] getting action for: %@", uuid);
+#endif
+    id object = [answerActions objectForKey:uuid];
+    
+    if ([object isKindOfClass:[CXAnswerCallAction class]]) {
+#ifdef DEBUG
+        NSLog(@"[RNCallKeep][answerActionForCallUUID:] extracting stored action for: %@", uuid);
+#endif
+        return object;
+    }
+    
+#ifdef DEBUG
+    NSLog(@"[RNCallKeep][answerActionForCallUUID:] no answer action for: %@", uuid);
+#endif
+    return nil;
 }
 
 + (NSDictionary *) getSettings {
@@ -788,6 +828,35 @@ RCT_EXPORT_METHOD(getAudioRoutes: (RCTPromiseResolveBlock)resolve
                       payload:(NSDictionary * _Nullable)payload
         withCompletionHandler:(void (^_Nullable)(void))completion
 {
+    [self reportNewIncomingCall:uuidString
+                         handle:handle
+                     handleType:handleType
+                       hasVideo:hasVideo
+            localizedCallerName:localizedCallerName
+                supportsHolding:supportsHolding
+                   supportsDTMF:supportsDTMF
+               supportsGrouping:supportsGrouping
+             supportsUngrouping:supportsUngrouping
+                    fromPushKit:fromPushKit
+                        payload:payload
+        automaticActionsFulfill:YES
+          withCompletionHandler:completion];
+}
+
++ (void)reportNewIncomingCall:(NSString *)uuidString 
+                       handle:(NSString *)handle
+                   handleType:(NSString *)handleType
+                     hasVideo:(BOOL)hasVideo 
+          localizedCallerName:(NSString *)localizedCallerName
+              supportsHolding:(BOOL)supportsHolding
+                 supportsDTMF:(BOOL)supportsDTMF
+             supportsGrouping:(BOOL)supportsGrouping
+           supportsUngrouping:(BOOL)supportsUngrouping
+                  fromPushKit:(BOOL)fromPushKit
+                      payload:(NSDictionary *)payload
+      automaticActionsFulfill:(BOOL)automaticFulfill
+        withCompletionHandler:(void (^)(void))completion
+{
 #ifdef DEBUG
     NSLog(@"[RNCallKeep][reportNewIncomingCall] uuidString = %@", uuidString);
 #endif
@@ -801,10 +870,16 @@ RCT_EXPORT_METHOD(getAudioRoutes: (RCTPromiseResolveBlock)resolve
     callUpdate.supportsUngrouping = supportsUngrouping;
     callUpdate.hasVideo = hasVideo;
     callUpdate.localizedCallerName = localizedCallerName;
-
+    
     [RNCallKeep initCallKitProvider];
+    
     [sharedProvider reportNewIncomingCallWithUUID:uuid update:callUpdate completion:^(NSError * _Nullable error) {
         RNCallKeep *callKeep = [RNCallKeep allocWithZone: nil];
+        
+        if (!automaticFulfill) {
+            [callKeep addCallUUIDToSaveAnswerActionLater:uuidString];
+        }
+        
         [callKeep sendEventWithNameWrapper:RNCallKeepDidDisplayIncomingCall body:@{
             @"error": error && error.localizedDescription ? error.localizedDescription : @"",
             @"errorCode": error ? [callKeep getIncomingCallErrorCode:error] : @"",
@@ -829,6 +904,19 @@ RCT_EXPORT_METHOD(getAudioRoutes: (RCTPromiseResolveBlock)resolve
             completion();
         }
     }];
+}
+
++ (void)performAnswerFulfillActionForCallUUID:(NSString *)uuid {
+    RNCallKeep *callKeep = [RNCallKeep allocWithZone:nil];
+    CXAnswerCallAction *answer = [callKeep answerActionForCallUUID:uuid];
+    
+    if (answer) {
+#ifdef DEBUG
+        NSLog(@"[RNCallKeep][performAnswerFulfillActionForCallUUID:] will fulfill answer action for uuid: %@", uuid);
+#endif
+        [answer fulfill];
+        [callKeep removeObjectsAssociatedWithUUID:uuid];
+    }
 }
 
 - (NSString *)getIncomingCallErrorCode:(NSError *)error {
@@ -1101,8 +1189,25 @@ RCT_EXPORT_METHOD(reportUpdatedCall:(NSString *)uuidString contactIdentifier:(NS
     NSLog(@"[RNCallKeep][CXProviderDelegate][provider:performAnswerCallAction]");
 #endif
     [self configureAudioSession];
-    [self sendEventWithNameWrapper:RNCallKeepPerformAnswerCallAction body:@{ @"callUUID": [action.callUUID.UUIDString lowercaseString] }];
-    [action fulfill];
+    NSString *uuid = [action.callUUID.UUIDString lowercaseString];
+    
+#ifdef DEBUG
+    NSLog(@"[RNCallKeep][CXProviderDelegate][provider:performAnswerCallAction] will check if answerActions %@ contains uuid: %@", answerActions, uuid);
+#endif
+
+    if ([[answerActions allKeys] containsObject:uuid]) {
+#ifdef DEBUG
+        NSLog(@"[RNCallKeep][CXProviderDelegate][provider:performAnswerCallAction] will add answer action for later fulfill with uuid: %@", uuid);
+#endif
+        [answerActions setObject:action forKey:uuid];
+    } else {
+#ifdef DEBUG
+        NSLog(@"[RNCallKeep][CXProviderDelegate][provider:performAnswerCallAction] will fulfill answer action for a call with uuid: %@", uuid);
+#endif
+        [action fulfill];
+    }
+    
+    [self sendEventWithNameWrapper:RNCallKeepPerformAnswerCallAction body:@{ @"callUUID": uuid }];
 }
 
 // Ending incoming call
