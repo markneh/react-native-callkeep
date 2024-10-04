@@ -915,6 +915,7 @@ RCT_EXPORT_METHOD(getAudioRoutes: (RCTPromiseResolveBlock)resolve
         NSLog(@"[RNCallKeep][performAnswerFulfillActionForCallUUID:] will fulfill answer action for uuid: %@", uuid);
 #endif
         [answer fulfill];
+        [callKeep configureAudioSession];
         [callKeep removeObjectsAssociatedWithUUID:uuid];
     }
 }
@@ -1188,7 +1189,6 @@ RCT_EXPORT_METHOD(reportUpdatedCall:(NSString *)uuidString contactIdentifier:(NS
 #ifdef DEBUG
     NSLog(@"[RNCallKeep][CXProviderDelegate][provider:performAnswerCallAction]");
 #endif
-    [self configureAudioSession];
     NSString *uuid = [action.callUUID.UUIDString lowercaseString];
     
 #ifdef DEBUG
@@ -1205,6 +1205,7 @@ RCT_EXPORT_METHOD(reportUpdatedCall:(NSString *)uuidString contactIdentifier:(NS
         NSLog(@"[RNCallKeep][CXProviderDelegate][provider:performAnswerCallAction] will fulfill answer action for a call with uuid: %@", uuid);
 #endif
         [action fulfill];
+        [self configureAudioSession];
     }
     
     [self sendEventWithNameWrapper:RNCallKeepPerformAnswerCallAction body:@{ @"callUUID": uuid }];
