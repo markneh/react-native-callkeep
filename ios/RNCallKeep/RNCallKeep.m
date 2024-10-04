@@ -1034,18 +1034,35 @@ RCT_EXPORT_METHOD(getAudioRoutes: (RCTPromiseResolveBlock)resolve
             mode = settings[@"audioSession"][@"mode"];
         }
     }
+    
+    __block NSError *error = nil;
+    void (^logError)(NSString *) = ^(NSString *context) {
+#ifdef DEBUG
+        if (error) {
+            NSLog(@"[RNCallKeep][configureAudioSession] %@: %@", context, error);
+            error = nil;
+        }
+#endif
+    };
 
     AVAudioSession* audioSession = [AVAudioSession sharedInstance];
-    [audioSession setCategory:AVAudioSessionCategoryPlayAndRecord withOptions:categoryOptions error:nil];
-
-    [audioSession setMode:mode error:nil];
-
+    
+    [audioSession setCategory:AVAudioSessionCategoryPlayAndRecord withOptions:categoryOptions error:&error];
+    logError(@"failed to set category");
+    
+    [audioSession setMode:mode error:&error];
+    logError(@"failed to set mode");
+    
     double sampleRate = 44100.0;
-    [audioSession setPreferredSampleRate:sampleRate error:nil];
+    [audioSession setPreferredSampleRate:sampleRate error:&error];
+    logError(@"failed to set sample rate");
 
     NSTimeInterval bufferDuration = .005;
-    [audioSession setPreferredIOBufferDuration:bufferDuration error:nil];
-    [audioSession setActive:TRUE error:nil];
+    [audioSession setPreferredIOBufferDuration:bufferDuration error:&error];
+    logError(@"failed to set preffered io buffer duration");
+    
+    [audioSession setActive:TRUE error:&error];
+    logError(@"failed to set active");
 }
 
 + (BOOL)application:(UIApplication *)application
