@@ -615,6 +615,10 @@ RCT_EXPORT_METHOD(getAudioRoutes: (RCTPromiseResolveBlock)resolve
     }
 }
 
+RCT_EXPORT_METHOD(performAnswerFulfillActionIfNeededForCallUUID:(NSString *)callUUID) {
+    [RNCallKeep performAnswerFulfillActionForCallUUID:callUUID];
+}
+
 + (NSMutableArray *) formatAudioInputs: (NSMutableArray *)inputs
 {
     NSMutableArray *newInputs = [NSMutableArray new];

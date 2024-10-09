@@ -100,6 +100,10 @@ class RNCallKeep {
 
   setSettings = (settings) => RNCallKeepModule.setSettings(settings[isIOS ? 'ios' : 'android']);
 
+  performAnswerFulfillActionIfNeededForCallUUID = (uuid) => {
+    RNCallKeepModule.performAnswerFulfillActionIfNeededForCallUUID(uuid);
+  };
+
   registerPhoneAccount = (options) => {
     if (isIOS) {
       return;

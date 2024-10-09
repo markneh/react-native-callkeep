@@ -159,6 +159,8 @@ declare module 'react-native-callkeep' {
 
     static unregisterAndroidEvents(): void
 
+    static performAnswerFulfillActionIfNeededForCallUUID(uuid: string): void
+
     static displayIncomingCall(
       uuid: string,
       handle: string,
